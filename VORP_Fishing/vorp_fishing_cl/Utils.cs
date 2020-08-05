@@ -15,6 +15,7 @@ namespace vorp_fishing_cl
 {
     public class Utils : BaseScript
     {
+        
 
         [StructLayout(LayoutKind.Explicit, Size = 0xe0)]
         [SecurityCritical]

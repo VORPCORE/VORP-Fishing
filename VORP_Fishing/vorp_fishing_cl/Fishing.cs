@@ -18,7 +18,16 @@ namespace vorp_fishing_cl
         private async Task DebugFishing()
         {
             await Delay(1000);
-            Debug.WriteLine(Utils.GetFishingMiniGameState().State.ToString());
+            try
+            {
+                FishingMinigame.GetMiniGameState();
+                Debug.WriteLine(FishingMinigame.State.ToString());
+            }
+            catch(Exception e)
+            {
+                Debug.WriteLine(e.Message);
+            }
+            
         }
     }
 }
