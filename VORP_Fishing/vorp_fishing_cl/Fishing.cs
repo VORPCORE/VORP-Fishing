@@ -54,20 +54,21 @@ namespace vorp_fishing_cl
 
             SetupPrompts();
 
-            Tick += DebugFishingMG;
+            //Tick += DebugFishingMG; //debug
             Tick += FeedFish;
             Tick += CheckFishingState;
             Tick += ControlFishingMG;
             Tick += ShowPrompts;
 
-            API.RegisterCommand("cebo", new Action<int, List<object>, string>((source, args, rawCommand) =>
-            {
-                Function.Call((Hash) 0x2C28AC30A72722DA, API.PlayerPedId(), "p_baitBread01x", 0);
-            }), false);
+            EventHandlers["vorp_fishing:UseBait"] += new Action(UseBait);
 
             EventHandlers["onResourceStop"] += new Action<string>(ClearCache);
         }
 
+        private void UseBait()
+        {
+            Function.Call((Hash)0x2C28AC30A72722DA, API.PlayerPedId(), "p_baitBread01x", 0);
+        }
 
         private async Task FeedFish()
         {
@@ -337,7 +338,10 @@ namespace vorp_fishing_cl
 
         public async Task CheckFishingState()
         {
-            await Delay(1);
+            await Delay(0);
+
+            FishingMinigame.GetMiniGameState();
+
             int actualState = FishingMinigame.State;
             int catchFish = fish;
             float catchFishDistance = fishDistance;
@@ -349,7 +353,6 @@ namespace vorp_fishing_cl
 
                     if (baitInt > 20f && catchFishDistance < 3.0f)
                     {
-                        Debug.WriteLine("Capturando");
                         uint model = (uint)API.GetEntityModel(catchFish);
                         float size = API.DecorGetFloat(catchFish, "FSize");
                         float ozs = Utils.fishOzs(model, size);
@@ -405,22 +408,33 @@ namespace vorp_fishing_cl
 
                 if (API.PromptHasHoldModeCompleted(SavePrompt))
                 {
-                    FishingMinigame.TransitionFlag = 32;
-                    FishingMinigame.SetMiniGameState();
+                    showing = false;
+                    int fEnt = FishingMinigame.FishEntity;
+                    if (Utils.FishModels.ContainsKey(API.GetEntityModel(fEnt)))
+                    {
+                        FishingMinigame.TransitionFlag = 32;
+                        FishingMinigame.SetMiniGameState();
 
-                    await Delay(2000);
+                        if (Utils.FishModels[API.GetEntityModel(fEnt)] == "a_c_fishlakesturgeon_01_lg") //BigFish
+                        {
+                            API.SetBlockingOfNonTemporaryEvents(fEnt, false);
+                            API.SetEntityInvincible(fEnt, false);
+                            API.SetPedConfigFlag(fEnt, 17, false);
+                        }
+                        else
+                        {
+                            TriggerServerEvent("vorp_fishing:FishToInventory", Utils.FishModels[API.GetEntityModel(fEnt)]);
 
-                    API.DeleteEntity(ref catchFish);
-                    API.DeletePed(ref catchFish);
+                            await Delay(1800);
 
-                    API.SetBlockingOfNonTemporaryEvents(catchFish, false);
-                    API.SetEntityInvincible(catchFish, false);
-                    API.SetPedConfigFlag(catchFish, 17, false);
+                            API.DeleteEntity(ref fEnt);
+                            API.DeletePed(ref fEnt);
+                        }
 
-                    hooked = false;
+                        hooked = false;
+                    }
 
-                    API.DeleteEntity(ref catchFish);
-                    API.DeletePed(ref catchFish);
+                    
                 }
 
             }
@@ -495,7 +509,7 @@ namespace vorp_fishing_cl
                     showing = true;
                 }
             }
-            else if (actualState == 12)
+            else if (actualState == 12 && FishingMinigame.TransitionFlag != 32 && showing)
             {
                 API.PromptSetEnabled(ReelInPrompt, 0);
                 API.PromptSetVisible(ReelInPrompt, 0);
