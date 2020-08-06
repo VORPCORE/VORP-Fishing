@@ -65,12 +65,6 @@ namespace vorp_fishing_cl
                 Function.Call((Hash) 0x2C28AC30A72722DA, API.PlayerPedId(), "p_baitBread01x", 0);
             }), false);
 
-            API.RegisterCommand("panic", new Action<int, List<object>, string>((source, args, rawCommand) =>
-            {
-                FishingMinigame.TransitionFlag = 2;
-                FishingMinigame.SetMiniGameState();
-            }), false);
-
             EventHandlers["onResourceStop"] += new Action<string>(ClearCache);
         }
 
@@ -221,6 +215,7 @@ namespace vorp_fishing_cl
                     if (actualState == 7)
                     {
                         FishingMinigame.TransitionFlag = 2;
+                        Function.Call((Hash)0x9B0C7FA063E67629, API.PlayerPedId(), "", false, true);
                     }
                     else
                     {
@@ -268,6 +263,7 @@ namespace vorp_fishing_cl
 
                             hooked = false;
                             isCatched = false;
+                            Function.Call((Hash)0x9B0C7FA063E67629, API.PlayerPedId(), "", false, true);
                         }
                     }
                     else
@@ -312,10 +308,12 @@ namespace vorp_fishing_cl
                         if (FishingMinigame.Distance < 5f)
                         {
                             FishingMinigame.TransitionFlag = 8;
+                            Function.Call((Hash)0x9B0C7FA063E67629, API.PlayerPedId(), "", false, true);
                         }
                         else if (FishingMinigame.Distance > 37f)
                         {
                             FishingMinigame.TransitionFlag = 2;
+                            Function.Call((Hash)0x9B0C7FA063E67629, API.PlayerPedId(), "", false, true);
                         }
                     }
                 }
