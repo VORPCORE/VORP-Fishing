@@ -415,7 +415,7 @@ namespace vorp_fishing_cl
                         FishingMinigame.TransitionFlag = 32;
                         FishingMinigame.SetMiniGameState();
 
-                        if (Utils.FishModels[API.GetEntityModel(fEnt)] == "a_c_fishlakesturgeon_01_lg") //BigFish
+                        if (Utils.FishModels[API.GetEntityModel(fEnt)].EndsWith("_lg")) //BigFish
                         {
                             API.SetBlockingOfNonTemporaryEvents(fEnt, false);
                             API.SetEntityInvincible(fEnt, false);

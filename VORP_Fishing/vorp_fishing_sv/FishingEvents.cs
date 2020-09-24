@@ -12,6 +12,12 @@ namespace vorp_fishing_sv
         public FishingEvents()
         {
             EventHandlers["vorp_fishing:FishToInventory"] += new Action<Player, string>(FishToInventory);
+            TriggerEvent("vorpCore:registerUsableItem", "fishbait", new Action<dynamic>((data) =>
+            {
+                PlayerList pl = new PlayerList();
+                Player p = pl[data.source];
+                p.TriggerEvent("vorp_fishing:UseBait");
+            }));
         }
 
         public void FishToInventory([FromSource]Player source, string modelName)
