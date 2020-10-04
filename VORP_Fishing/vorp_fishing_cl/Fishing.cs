@@ -36,6 +36,7 @@ namespace vorp_fishing_cl
 
         //Prompts
         private static bool showing = false;
+        private static bool givedFish = false;
         private int ResetCastPrompt = -1;
         private int ReelInPrompt = -1;
         private int SavePrompt = -1;
@@ -54,7 +55,7 @@ namespace vorp_fishing_cl
 
             SetupPrompts();
 
-            //Tick += DebugFishingMG; //debug
+            Tick += DebugFishingMG; //debug
             Tick += FeedFish;
             Tick += CheckFishingState;
             Tick += ControlFishingMG;
@@ -265,6 +266,7 @@ namespace vorp_fishing_cl
                             hooked = false;
                             isCatched = false;
                             Function.Call((Hash)0x9B0C7FA063E67629, API.PlayerPedId(), "", false, true);
+                            TriggerEvent("vorp:TipRight", GetConfig.Langs["EscapeFish"], 2000);
                         }
                     }
                     else
@@ -310,11 +312,13 @@ namespace vorp_fishing_cl
                         {
                             FishingMinigame.TransitionFlag = 8;
                             Function.Call((Hash)0x9B0C7FA063E67629, API.PlayerPedId(), "", false, true);
+                            TriggerEvent("vorp:TipRight", GetConfig.Langs["CaughtFish"], 2000);
                         }
                         else if (FishingMinigame.Distance > 37f)
                         {
                             FishingMinigame.TransitionFlag = 2;
                             Function.Call((Hash)0x9B0C7FA063E67629, API.PlayerPedId(), "", false, true);
+                            TriggerEvent("vorp:TipRight", GetConfig.Langs["EscapeFish"], 2000);
                         }
                     }
                 }
@@ -338,7 +342,6 @@ namespace vorp_fishing_cl
 
         public async Task CheckFishingState()
         {
-            await Delay(0);
 
             FishingMinigame.GetMiniGameState();
 
@@ -406,14 +409,19 @@ namespace vorp_fishing_cl
                     API.DeletePed(ref catchFish);
                 }
 
-                if (API.PromptHasHoldModeCompleted(SavePrompt))
+                if (API.PromptHasHoldModeCompleted(SavePrompt) && !givedFish)
                 {
+                    API.PromptSetEnabled(SavePrompt, 0);
+                    API.PromptSetVisible(SavePrompt, 0);
+                    givedFish = true;
                     showing = false;
                     int fEnt = FishingMinigame.FishEntity;
                     if (Utils.FishModels.ContainsKey(API.GetEntityModel(fEnt)))
                     {
                         FishingMinigame.TransitionFlag = 32;
                         FishingMinigame.SetMiniGameState();
+
+                        hooked = false;
 
                         if (Utils.FishModels[API.GetEntityModel(fEnt)].EndsWith("_lg")) //BigFish
                         {
@@ -423,19 +431,16 @@ namespace vorp_fishing_cl
                         }
                         else
                         {
+                            Debug.WriteLine(Utils.FishModels[API.GetEntityModel(fEnt)]);
                             TriggerServerEvent("vorp_fishing:FishToInventory", Utils.FishModels[API.GetEntityModel(fEnt)]);
-
-                            await Delay(1800);
-
                             API.DeleteEntity(ref fEnt);
                             API.DeletePed(ref fEnt);
                         }
 
-                        hooked = false;
                     }
-
-                    
+                    givedFish = false;
                 }
+                await Delay(500);
 
             }
             else
@@ -446,6 +451,8 @@ namespace vorp_fishing_cl
                     FX_Drip = -1;
                 }
             }
+
+            await Delay(10);
         }
 
         public void SetupPrompts()

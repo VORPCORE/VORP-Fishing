@@ -55,7 +55,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Config.json" />
-    <None Include="Es.json" />
+    <None Include="Es.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
