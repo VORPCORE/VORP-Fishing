@@ -31,6 +31,9 @@ namespace vorp_fishing_cl
             {
                 Langs[l.Key] = l.Value.ToString();
             }
+
+            Fishing.SetupPrompts();
+
             IsLoaded = true;
         }
     }

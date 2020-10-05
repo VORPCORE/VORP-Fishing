@@ -19,12 +19,22 @@ namespace vorp_fishing_sv
             }));
 
             EventHandlers["vorp_fishing:FishToInventory"] += new Action<Player, string>(FishToInventory);
+            EventHandlers["vorp_fishing:baitUsed"] += new Action<Player>(BaitUsed);
             TriggerEvent("vorpCore:registerUsableItem", "fishbait", new Action<dynamic>((data) =>
             {
                 PlayerList pl = new PlayerList();
                 Player p = pl[data.source];
                 p.TriggerEvent("vorp_fishing:UseBait");
             }));
+
+
+
+        }
+
+        private void BaitUsed(Player player)
+        {
+            int _source = int.Parse(player.Handle);
+            TriggerEvent("vorpCore:subItem", _source, "fishbait", 1);
         }
 
         public void FishToInventory([FromSource]Player source, string modelName)
@@ -32,23 +42,8 @@ namespace vorp_fishing_sv
             Debug.WriteLine("Model Name:" + modelName);
             int _source = int.Parse(source.Handle);
 
-
+            source.TriggerEvent("vorp:TipRight", LoadConfig.Langs["CaughtFish"], 2000);
             TriggerEvent("vorpCore:addItem", _source, modelName, 1);
-
-            //TriggerEvent("vorpCore:canCarryItem", _source, modelName, 1, new Action<bool>((can) =>
-            //{
-            //    if (!can)
-            //    {
-            //        source.TriggerEvent("vorp:TipRight", LoadConfig.Langs["CantCarryMore"], 4000);
-            //    }
-            //    else
-            //    {
-            //        TriggerEvent("vorpCore:addItem", _source, modelName, 1);
-            //        source.TriggerEvent("vorp:TipRight", LoadConfig.Langs["CantCarryMore"], 4000);
-            //    }
-
-            //}));
-
         }
     }
 }

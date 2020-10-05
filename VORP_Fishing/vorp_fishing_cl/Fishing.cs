@@ -37,10 +37,10 @@ namespace vorp_fishing_cl
         //Prompts
         private static bool showing = false;
         private static bool givedFish = false;
-        private int ResetCastPrompt = -1;
-        private int ReelInPrompt = -1;
-        private int SavePrompt = -1;
-        private int BackPrompt = -1;
+        private static int ResetCastPrompt = -1;
+        private static int ReelInPrompt = -1;
+        private static int SavePrompt = -1;
+        private static int BackPrompt = -1;
 
         public Fishing()
         {
@@ -53,9 +53,7 @@ namespace vorp_fishing_cl
                 Function.Call<int>((Hash) 0x0522D4774B82E3E6, 0f, 0f, 0f, 0f, 0f, 0f, range, range, range);
             itemSet = API.CreateItemset(true);
 
-            SetupPrompts();
-
-            Tick += DebugFishingMG; //debug
+            //Tick += DebugFishingMG; //debug
             Tick += FeedFish;
             Tick += CheckFishingState;
             Tick += ControlFishingMG;
@@ -68,7 +66,18 @@ namespace vorp_fishing_cl
 
         private void UseBait()
         {
-            Function.Call((Hash)0x2C28AC30A72722DA, API.PlayerPedId(), "p_baitBread01x", 0);
+            uint weaponHash = 0;
+            API.GetCurrentPedWeapon(API.PlayerPedId(), ref weaponHash, true, 0, true);
+
+            if (weaponHash != 0 && weaponHash == 0xABA87754)
+            {
+                Function.Call((Hash)0x2C28AC30A72722DA, API.PlayerPedId(), "p_baitBread01x", 0);
+                TriggerServerEvent("vorp_fishing:baitUsed");
+            }
+            else
+            {
+                TriggerEvent("vorp:TipRight", GetConfig.Langs["NotRod"], 2000);
+            }
         }
 
         private async Task FeedFish()
@@ -312,7 +321,6 @@ namespace vorp_fishing_cl
                         {
                             FishingMinigame.TransitionFlag = 8;
                             Function.Call((Hash)0x9B0C7FA063E67629, API.PlayerPedId(), "", false, true);
-                            TriggerEvent("vorp:TipRight", GetConfig.Langs["CaughtFish"], 2000);
                         }
                         else if (FishingMinigame.Distance > 37f)
                         {
@@ -455,11 +463,11 @@ namespace vorp_fishing_cl
             await Delay(10);
         }
 
-        public void SetupPrompts()
+        public static void SetupPrompts()
         {
             ResetCastPrompt = API.PromptRegisterBegin();
             Function.Call((Hash)0xB5352B7494A08258, ResetCastPrompt, 0x156F7119);
-            long resetCastSTR = Function.Call<long>(Hash._CREATE_VAR_STRING, 10, "LITERAL_STRING", "Cancelar");
+            long resetCastSTR = Function.Call<long>(Hash._CREATE_VAR_STRING, 10, "LITERAL_STRING", GetConfig.Langs["Cancel"]);
             Function.Call((Hash)0x5DD02A8318420DD7, ResetCastPrompt, resetCastSTR);
             API.PromptSetEnabled(ResetCastPrompt, 0);
             API.PromptSetVisible(ResetCastPrompt, 0);
@@ -468,7 +476,7 @@ namespace vorp_fishing_cl
 
             ReelInPrompt = API.PromptRegisterBegin();
             Function.Call((Hash)0xB5352B7494A08258, ReelInPrompt, 0x8FFC75D6);
-            long reelInStr = Function.Call<long>(Hash._CREATE_VAR_STRING, 10, "LITERAL_STRING", "Recoger Sedal");
+            long reelInStr = Function.Call<long>(Hash._CREATE_VAR_STRING, 10, "LITERAL_STRING", GetConfig.Langs["ReelIn"]);
             Function.Call((Hash)0x5DD02A8318420DD7,ReelInPrompt, reelInStr);
             API.PromptSetEnabled(ReelInPrompt, 0);
             API.PromptSetVisible(ReelInPrompt, 0);
@@ -477,7 +485,7 @@ namespace vorp_fishing_cl
 
             SavePrompt = API.PromptRegisterBegin();
             Function.Call((Hash)0xB5352B7494A08258, SavePrompt, 0xCEFD9220);
-            long saveStr = Function.Call<long>(Hash._CREATE_VAR_STRING, 10, "LITERAL_STRING", "Guardar");
+            long saveStr = Function.Call<long>(Hash._CREATE_VAR_STRING, 10, "LITERAL_STRING", GetConfig.Langs["SaveFish"]);
             Function.Call((Hash)0x5DD02A8318420DD7, SavePrompt, saveStr);
             API.PromptSetEnabled(SavePrompt, 0);
             API.PromptSetVisible(SavePrompt, 0);
@@ -486,7 +494,7 @@ namespace vorp_fishing_cl
 
             BackPrompt = API.PromptRegisterBegin();
             Function.Call((Hash)0xB5352B7494A08258, BackPrompt, 0XB2F377E8);
-            long backStr = Function.Call<long>(Hash._CREATE_VAR_STRING, 10, "LITERAL_STRING", "Soltar");
+            long backStr = Function.Call<long>(Hash._CREATE_VAR_STRING, 10, "LITERAL_STRING", GetConfig.Langs["FreeFish"]);
             Function.Call((Hash)0x5DD02A8318420DD7, BackPrompt, backStr);
             API.PromptSetEnabled(BackPrompt, 0);
             API.PromptSetVisible(BackPrompt, 0);
@@ -589,9 +597,9 @@ namespace vorp_fishing_cl
                 fishText += Utils.FishModels[API.GetEntityModel(ent)] + " Bait: " + API.DecorGetFloat(ent, "FBaitInt") + "\n";
             }
 
-            //await Utils.DrawTxt(debugText, 0.1f, 0.2f, 0.25f, 0.25f, 255, 255, 255, 255, false, false);
+            await Utils.DrawTxt(debugText, 0.1f, 0.2f, 0.25f, 0.25f, 255, 255, 255, 255, false, false);
 
-            //await Utils.DrawTxt(fishText, 0.75f, 0.1f, 0.25f, 0.25f, 255, 255, 255, 255, false, false);
+            await Utils.DrawTxt(fishText, 0.75f, 0.1f, 0.25f, 0.25f, 255, 255, 255, 255, false, false);
         }
 
         private void ClearCache(string resName)
