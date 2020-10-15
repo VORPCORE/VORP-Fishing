@@ -31,7 +31,7 @@ namespace vorp_fishing_sv
 
         }
 
-        private void BaitUsed(Player player)
+        private void BaitUsed([FromSource] Player player)
         {
             int _source = int.Parse(player.Handle);
             TriggerEvent("vorpCore:subItem", _source, "fishbait", 1);
